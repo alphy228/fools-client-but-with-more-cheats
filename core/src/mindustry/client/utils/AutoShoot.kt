@@ -44,10 +44,10 @@ fun autoShoot() {
     val type = unit.type ?: return
     val targetBuild = target as? Building
     val validHealTarget = Vars.player.unit().type.canHeal && targetBuild?.isValid == true && target?.team() == unit.team && targetBuild.damaged() && target?.within(unit, unit.range()) == true
+    Vars.player.shooting = (Core.settings.getBool("autotarget") && !Vars.state.isMenu && !Vars.state.isEditor && !Vars.player.boosting) //always shoot lolololol
 
     if ((hadTarget && target == null || target != null && Units.invalidateTarget(target, unit, unit.range())) && !validHealTarget) { // Invalidate target
         val desktopInput = Vars.control.input as? DesktopInput
-        Vars.player.shooting = (Core.settings.getBool("autotarget") && !Vars.state.isMenu && !Vars.state.isEditor) //always shoot lolololol
         target = null
         hadTarget = false
     }
@@ -106,7 +106,6 @@ fun autoShoot() {
         val boosting = unit is Mechc && unit.isFlying()
         Vars.player.mouseX = intercept.x
         Vars.player.mouseY = intercept.y
-        Vars.player.shooting = !boosting
 
         if (type.omniMovement && Vars.player.shooting && type.hasWeapons() && type.faceTarget && !boosting) { // Rotate towards enemy
             unit.lookAt(Vars.player.mouseX, Vars.player.mouseY)
