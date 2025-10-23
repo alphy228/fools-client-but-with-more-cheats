@@ -47,7 +47,7 @@ fun autoShoot() {
 
     if ((hadTarget && target == null || target != null && Units.invalidateTarget(target, unit, unit.range())) && !validHealTarget) { // Invalidate target
         val desktopInput = Vars.control.input as? DesktopInput
-        Vars.player.shooting = (Core.settings.getBool("autotarget") && !Vars.state.isMenu && !Vars.state.isEditor)
+        Vars.player.shooting = (Core.settings.getBool("autotarget") && !Vars.state.isMenu && !Vars.state.isEditor) //always shoot lolololol
         target = null
         hadTarget = false
     }
