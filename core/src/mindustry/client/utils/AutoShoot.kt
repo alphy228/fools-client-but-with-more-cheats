@@ -45,6 +45,9 @@ fun autoShoot() {
     val targetBuild = target as? Building
     val validHealTarget = Vars.player.unit().type.canHeal && targetBuild?.isValid == true && target?.team() == unit.team && targetBuild.damaged() && target?.within(unit, unit.range()) == true
     Vars.player.shooting = (Core.settings.getBool("autotarget") && !Vars.state.isMenu && !Vars.state.isEditor && !Vars.player.boosting) //always shoot lolololol
+    if (Core.settings.getBool("autotarget") == true) {
+    Vars.player.unit().controlWeapons(true, !Vars.state.isMenu && !Vars.state.isEditor && !Vars.player.boosting) //always shoot lololololllolool
+    }
 
     if ((hadTarget && target == null || target != null && Units.invalidateTarget(target, unit, unit.range())) && !validHealTarget) { // Invalidate target
         val desktopInput = Vars.control.input as? DesktopInput
