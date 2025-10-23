@@ -47,7 +47,7 @@ fun autoShoot() {
 
     if ((hadTarget && target == null || target != null && Units.invalidateTarget(target, unit, unit.range())) && !validHealTarget) { // Invalidate target
         val desktopInput = Vars.control.input as? DesktopInput
-        Vars.player.shooting = Core.input.keyDown(Binding.select) && !Core.scene.hasMouse() && (desktopInput == null || desktopInput.shouldShoot)
+        Vars.player.shooting = (Core.settings.getBool("autotarget") && !Vars.state.isMenu && !Vars.state.isEditor)
         target = null
         hadTarget = false
     }
@@ -59,7 +59,7 @@ fun autoShoot() {
         }
         if (type.canHeal && target == null) {
             target = Units.findDamagedTile(Vars.player.team(), Vars.player.x, Vars.player.y)
-            if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() + 4 + (target as Building).hitSize()/2f else 0f)) target = null
+            if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() + unit.range()*200 + (target as Building).hitSize()/2f else 0f)) target = null
         }
 
         if (target == null && (type == UnitTypes.block || type.canAttack)) {
@@ -104,7 +104,6 @@ fun autoShoot() {
     if (target != null) { // Shoot at target
         val intercept = if (type.weapons.contains { !it.predictTarget }) target!! else Predict.intercept(unit, target, if (type.hasWeapons()) type.weapons.first().bullet.speed else 0f)
         val boosting = unit is Mechc && unit.isFlying()
-
         Vars.player.mouseX = intercept.x
         Vars.player.mouseY = intercept.y
         Vars.player.shooting = !boosting
