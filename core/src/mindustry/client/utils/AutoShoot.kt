@@ -49,7 +49,7 @@ fun autoShoot() {
     Vars.player.unit().controlWeapons(true, !Vars.state.isMenu && !Vars.state.isEditor && !Vars.player.boosting) //always shoot lololololllolool
     }
 
-    if ((hadTarget && target == null || target != null && Units.invalidateTarget(target, unit, unit.range())) && !validHealTarget) { // Invalidate target
+    if ((hadTarget && target == null || target != null && Units.invalidateTarget(target, unit, unit.range()*999)) && !validHealTarget) { // Invalidate target
         val desktopInput = Vars.control.input as? DesktopInput
         target = null
         hadTarget = false
@@ -58,23 +58,23 @@ fun autoShoot() {
     if (target == null || Client.timer.get(2, 6f)) { // Acquire target FINISHME: Heal allied units?
         if (type.canAttack) {
             val ignoreDisarmed = Server.io() && !CustomMode.defense();
-            target = Units.closestEnemy(unit.team, unit.x, unit.y, unit.range()) { u -> !(ignoreDisarmed && u.disarmed) && u.checkTarget(type.targetAir, unit.type.targetGround) }
+            target = Units.closestEnemy(unit.team, unit.x, unit.y, unit.range()*999) { u -> !(ignoreDisarmed && u.disarmed) && u.checkTarget(type.targetAir, unit.type.targetGround) }
         }
         if (type.canHeal && target == null) {
             target = Units.findDamagedTile(Vars.player.team(), Vars.player.x, Vars.player.y)
-            if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range() + unit.range()*200 + (target as Building).hitSize()/2f else 0f)) target = null
+            if (target != null && !unit.within(target, if (type.hasWeapons()) unit.range()*999 + unit.range()*200*999 + (target as Building).hitSize()/2f else 0f)) target = null
         }
 
         if (target == null && (type == UnitTypes.block || type.canAttack)) {
             target =
-                if (CustomMode.flood()) Units.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range()) { type.targetGround } // Shoot buildings in flood because why not
-                else Vars.indexer.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range(), true) { it is ShockMine.ShockMineBuild }
+                if (CustomMode.flood()) Units.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range()*999) { type.targetGround } // Shoot buildings in flood because why not
+                else Vars.indexer.findEnemyTile(Vars.player.team(), Vars.player.x, Vars.player.y, unit.range()*999, true) { it is ShockMine.ShockMineBuild }
         }
         if (!CustomMode.flood() && (unit as? BlockUnitc)?.tile()?.block == Blocks.foreshadow) {
-            val amount = unit.range() * 2 + 1
+            val amount = unit.range()*999 * 2 + 1
             var closestScore = Float.POSITIVE_INFINITY
 
-            circle(Vars.player.tileX(), Vars.player.tileY(), unit.range()) { tile ->
+            circle(Vars.player.tileX(), Vars.player.tileY(), unit.range()*999) { tile ->
                 tile ?: return@circle
                 if (tile.team() == Vars.player.team()) return@circle
                 val block = tile.block()
