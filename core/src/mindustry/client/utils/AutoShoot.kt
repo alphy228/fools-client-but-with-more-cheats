@@ -43,7 +43,7 @@ fun autoShoot() {
     if (unit.mining()) return
     val type = unit.type ?: return
     val targetBuild = target as? Building
-    val validHealTarget = Vars.player.unit().type.canHeal && targetBuild?.isValid == true && target?.team() == unit.team && targetBuild.damaged() && target?.within(unit, unit.range()) == true
+    val validHealTarget = Vars.player.unit().type.canHeal && targetBuild?.isValid == true && target?.team() == unit.team && targetBuild.damaged() && target?.within(unit, unit.range()*999) == true
 
     Vars.player.shooting = (Core.settings.getBool("autotarget") && !Vars.state.isMenu && !Vars.state.isEditor && !Vars.player.boosting) //always shoot lolololol
     if (Core.settings.getBool("autotarget") == true) {
