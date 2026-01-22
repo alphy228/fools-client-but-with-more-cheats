@@ -1032,10 +1032,6 @@ public class DesktopInput extends InputHandler{
             } else {
                 isBuilding = !isBuilding;
                 buildWasAutoPaused = false;
-
-                if(isBuilding){
-                    player.shooting = false;
-                }
             }
         }
 
