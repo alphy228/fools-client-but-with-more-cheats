@@ -92,7 +92,9 @@ public class Mods implements Loadable{
             Fi file = mod.root.child(directory);
             if(file.exists()){
                 for(Fi child : file.list()){
-                    cons.get(mod, child);
+                    if(!child.isDirectory()){
+                        cons.get(mod, child);
+                    }
                 }
             }
         });
@@ -172,6 +174,8 @@ public class Mods implements Loadable{
         eachEnabled(mod -> {
             Seq<Fi> sprites = mod.root.child("sprites").findAll(f -> f.extension().equals("png"));
             Seq<Fi> overrides = mod.root.child("sprites-override").findAll(f -> f.extension().equals("png"));
+
+            if(sprites.isEmpty() && overrides.isEmpty()) return;
 
             count[0] += packSprites(sprites, mod, true, queues);
             count[0] += packSprites(overrides, mod, false, queues);
@@ -387,15 +391,25 @@ public class Mods implements Loadable{
             Threads.awaitAll(tasks); //await packing
             Log.debug("Processed restored sprites in: @ms", Time.elapsed());
 
+            var whitePixmap = Pixmaps.blankPixmap();
+            var whiteTex = new Texture(whitePixmap);
+            var whiteRegion = new AtlasRegion(whiteTex, 0, 0, 1, 1);
+
             Core.atlas.dispose();
 
             //dead shadow-atlas for getting regions, but not pixmaps
             var shadow = Core.atlas;
             //dummy texture atlas that returns the 'shadow' regions; used for mod loading
             Core.atlas = new TextureAtlas(){
+
                 {
                     //needed for the correct operation of the found() method in the TextureRegion
                     error = shadow.find("error");
+                }
+
+                @Override
+                public AtlasRegion white(){
+                    return whiteRegion;
                 }
 
                 @Override
@@ -455,6 +469,9 @@ public class Mods implements Loadable{
             }
             Threads.awaitAll(await);
             Log.debug("Time to generate icons: @ms", Time.elapsed());
+
+            whitePixmap.dispose();
+            whiteTex.dispose();
 
             //replace old atlas data
             Core.atlas = packer.flush(Core.settings.getBool("linear", true) ? TextureFilter.linear : TextureFilter.nearest, new TextureAtlas(){
@@ -1537,6 +1554,8 @@ public class Mods implements Loadable{
         public boolean hidden;
         /** If true, this mod should be loaded as a Java class mod. This is technically optional, but highly recommended. */
         public boolean java;
+        /** If true, this script mod is compatible with iOS. Only set this to true if you don't use extend()/JavaAdapter. */
+        public boolean iosCompatible;
         /** To rescale textures with a different size. Represents the size in pixels of the sprite of a 1x1 block. */
         public float texturescale = 1.0f;
         /** If true, bleeding is skipped and no content icons are generated. */
@@ -1607,7 +1626,7 @@ public class Mods implements Loadable{
         disabled,
     }
 
-    public static class ModResolutionContext {
+    public static class ModResolutionContext{
         public final ObjectMap<String, Seq<ModDependency>> dependencies = new ObjectMap<>();
         public final ObjectSet<String> visited = new ObjectSet<>();
         public final OrderedSet<String> ordered = new OrderedSet<>();

@@ -9,6 +9,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.Log.*;
+import arc.util.io.*;
 import mindustry.ai.*;
 import mindustry.async.*;
 import mindustry.core.*;
@@ -50,7 +51,7 @@ public class Vars implements Loadable{
     /** Min game version for all mods. */
     public static final int minModGameVersion = 136;
     /** Min game version for java mods specifically - this is higher, as Java mods have more breaking changes. */
-    public static final int minJavaModGameVersion = 147;
+    public static final int minJavaModGameVersion = 154;
     /** If true, a button to view sector submission threads is shown. */
     public static boolean showSectorSubmissions = true;
     /** If true, the BE server list is always used. */
@@ -449,8 +450,18 @@ public class Vars implements Loadable{
 
         settings.setAppName(appName);
 
+        loadFileLogger(settings.getDataDirectory().child("last_log.txt"));
+    }
+
+    public static void loadFileLogger(Fi file){
+        if(loadedFileLogger) return;
+
+        if(!file.parent().exists()){
+            file.parent().mkdirs();
+        }
+
         try{
-            Writer writer = settings.getDataDirectory().child("last_log.txt").writer(false);
+            Writer writer = file.writer(false);
             LogHandler log = Log.logger;
             Log.logger = (level, text) -> {
                 log.log(level, text);
@@ -475,7 +486,7 @@ public class Vars implements Loadable{
         settings.setJson(JsonIO.json);
         settings.setAppName(appName);
 
-        if(steam || (Version.modifier != null && Version.modifier.contains("steam"))){
+        if(steam || Version.isSteam){
             settings.setDataDirectory(Core.files.local("saves/"));
         }
 
@@ -596,5 +607,9 @@ public class Vars implements Loadable{
 
             }
         }
+
+        StringMap globalBundle = new StringMap();
+        PropertiesUtils.load(globalBundle, files.internal("bundles/global.properties").reader("UTF-8"));
+        bundle.getProperties().putAll(globalBundle);
     }
 }

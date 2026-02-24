@@ -9,7 +9,7 @@ buildscript{
     ext{
         arcHash = property("archash")
 
-        localArc = !project.hasProperty("release") && new File(rootDir.parent, 'Arc').exists() && !project.hasProperty("noLocalArc")
+        localArc = new File(rootDir.parent, 'Arc').exists() && !project.hasProperty("noLocalArc")
 
         arcModule = { String name ->
             //skip to last submodule
@@ -22,7 +22,6 @@ buildscript{
         mavenLocal()
         mavenCentral()
         google()
-        maven{ url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven{ url 'https://jitpack.io' }
     }
 
@@ -47,12 +46,12 @@ allprojects{
         if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
         if(!project.hasProperty("assetRef")) assetRef = 'v8'
         if(!project.hasProperty("versionModifier")) versionModifier = 'beta'
-        if(!project.hasProperty("buildversion")) buildversion = '154'
+        if(!project.hasProperty("buildversion")) buildversion = '155.4'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
-        rhinoVersion = '73a812444ac388ac2d94013b5cadc8f70b7ea027'
+        rhinoVersion = '54b75cbd1207ef1fd5cff517cbd188e763c85baa'
 
         loadVersionProps = {
             return new Properties().with{p -> p.load(file('../core/assets/version.properties').newReader()); return p }
@@ -121,7 +120,7 @@ allprojects{
             def output = 'en\n'
             def bundles = new File(project(':core').projectDir, 'assets/bundles/')
             bundles.list().sort().each{ name ->
-                if(name == "bundle.properties") return
+                if(name == "bundle.properties" || name == "global.properties") return
                 if(name == ".DS_Store"){ // Thanks apple
                     new File(bundles, name).delete()
                     return
@@ -193,8 +192,7 @@ allprojects{
     repositories{
         mavenLocal()
         mavenCentral()
-        maven{ url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven{ url "https://oss.sonatype.org/content/repositories/releases/" }
+        maven{ url "https://central.sonatype.com/repository/maven-snapshots" }
         maven{ url 'https://jitpack.io' }
     }
 
@@ -247,6 +245,7 @@ project(":desktop"){
         implementation arcModule("extensions:profiling")
         implementation arcModule("extensions:discord")
         implementation arcModule("natives:natives-filedialogs")
+        implementation arcModule("extensions:filedialogs")
         implementation arcModule("natives:natives-desktop")
         implementation arcModule("natives:natives-freetype-desktop")
 
@@ -362,7 +361,7 @@ project(":core"){
     dependencies{
         compileJava.dependsOn(preGen)
 
-        api "org.lz4:lz4-java:1.8.0"
+        api "at.yawk.lz4:lz4-java:1.10.2"
         api arcModule("arc-core")
         if(localArc && project.hasProperty("debug")) implementation arcModule("extensions:profiling")
         api arcModule("extensions:flabel")
@@ -370,17 +369,13 @@ project(":core"){
         api arcModule("extensions:g3d")
         api arcModule("extensions:fx")
         api arcModule("extensions:arcnet")
-        implementation arcModule("extensions:filedialogs")
         api "com.github.Anuken:rhino:$rhinoVersion"
         if(localArc && debugged()) api arcModule("extensions:recorder")
         if(localArc) api arcModule(":extensions:packer")
 
 //        implementation "org.jetbrains.kotlin:kotlin-reflect:2.1.20"
 
-        compileOnly files("../bouncycastle/bcprov-jdk15on.jar")
-        compileOnly files("../bouncycastle/bcpkix-jdk15on.jar")
-        compileOnly files("../bouncycastle/bctls-jdk15on.jar")
-        compileOnly files("../bouncycastle/bcutil-jdk15on.jar")
+        implementation files("../bouncycastle/bcprov-jdk15on.jar", "../bouncycastle/bcpkix-jdk15on.jar", "../bouncycastle/bctls-jdk15on.jar", "../bouncycastle/bcutil-jdk15on.jar")
         compileOnly arcModule("backends:backend-sdl")
         implementation 'commons-net:commons-net:3.8.0'
 
@@ -517,9 +512,10 @@ configure([":core", ":server"].collect{project(it)}){
         publications{
             maven(MavenPublication){
                 from components.java
-                if(project.name == "core"){
-                    artifact(tasks.named("assetsJar"))
-                }
+                //TODO: uncomment this once the jitpack packing is fixed (currently depends on a newer glibc version)
+                //if(project.name == "core"){
+                //    artifact(tasks.named("assetsJar"))
+                //}
             }
         }
     }
